@@ -17,7 +17,7 @@ public class Db implements UserRepository {
     @Override
     public User save(User user) {
         if (user.getId() == null || user.getId().isBlank()) {
-            user.setId(String.valueOf(seq.incrementAndGet()));
+            throw new IllegalArgumentException("id darf nicht leer sein");
         }
         store.put(user.getId(), user);
         return user;
