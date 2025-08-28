@@ -1,6 +1,6 @@
 package de.sheqq.sommerfacade.infrastructur.service;
 
-import de.sheqq.sommerfacade.infrastructur.model.User;
+import de.sheqq.sommerfacade.infrastructur.model.UserDO;
 import de.sheqq.sommerfacade.infrastructur.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
@@ -14,19 +14,19 @@ public class UserService {
         this.repo = repo;
     }
 
-    public List<User> findAll() {
+    public List<UserDO> findAll() {
         return repo.findAll();
     }
 
-    public Optional<User> findById(String id) {
+    public Optional<UserDO> findById(String id) {
         return repo.findById(id);
     }
 
-    public User create(User u) {
+    public UserDO create(UserDO u) {
         return repo.save(u);
     }
 
-    public Optional<User> update(String id, User incoming) {
+    public Optional<UserDO> update(String id, UserDO incoming) {
         return repo.findById(id).map(existing -> {
             existing.setUsername(incoming.getUsername());
             existing.setMember(incoming.getMember());
@@ -44,7 +44,7 @@ public class UserService {
         return false;
     }
 
-    public Optional<User> findByUsername(String username) {
+    public Optional<UserDO> findByUsername(String username) {
         return repo.findByUsername(username);
     }
 }

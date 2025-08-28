@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 
 
-public class User {
+public class UserDO {
     @NotBlank
     private String id;
     @NotBlank
@@ -14,8 +14,8 @@ public class User {
     private Integer level;
     private String color;
 
-    public User() {}
-    public User(String id, String username) {
+    public UserDO() {}
+    public UserDO(String id, String username) {
         this.id = id;
         this.username = username;
     }

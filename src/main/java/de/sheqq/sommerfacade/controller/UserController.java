@@ -1,93 +1,75 @@
 package de.sheqq.sommerfacade.controller;
 
-
 import de.sheqq.sommerfacade.api.UsersApi;
-import de.sheqq.sommerfacade.dto.CreateUserRequest;
-import de.sheqq.sommerfacade.dto.UpdateUserRequest;
-import de.sheqq.sommerfacade.infrastructur.model.User;
+import de.sheqq.sommerfacade.dto.User;
+import de.sheqq.sommerfacade.infrastructur.model.UserDO;
 import de.sheqq.sommerfacade.infrastructur.service.UserService;
-import jakarta.validation.Valid;
+import de.sheqq.sommerfacade.mapper.UserMapper;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/v1/users")
 public class UserController implements UsersApi {
-    private final UserService service;
 
-    public UserController(UserService service) {
+    private final UserService service;
+    private final UserMapper mapper;
+
+    public UserController(UserService service, UserMapper mapper) {
         this.service = service;
+        this.mapper = mapper;
     }
 
-//    @GetMapping
-//    public ResponseEntity<List<User>> getAll() {
-//        return ResponseEntity.ok(service.findAll());
-//    }
-//
-//    @GetMapping("/{id}")
-//    public ResponseEntity<User> getOne(@PathVariable String id) {
-//        return service.findById(id)
-//                .map(ResponseEntity::ok)
-//                .orElse(ResponseEntity.notFound().build());
-//    }
-//
-//    @PostMapping
-//    public ResponseEntity<User> create(@Valid @RequestBody User user) {
-//        User saved = service.create(user);
-//        return ResponseEntity
-//                .created(URI.create("/api/v1/users/" + saved.getId()))
-//                .body(saved);
-//    }
-//
-//    @PutMapping("/{id}")
-//    public ResponseEntity<User> update(@PathVariable String id,
-//                                       @Valid @RequestBody User user) {
-//        return service.update(id, user)
-//                .map(ResponseEntity::ok)
-//                .orElse(ResponseEntity.notFound().build());
-//    }
-//
-//    @DeleteMapping("/{id}")
-//    public ResponseEntity<Void> delete(@PathVariable String id) {
-//        boolean deleted = service.delete(id);
-//        return deleted ? ResponseEntity.noContent().build()
-//                : ResponseEntity.notFound().build();
-//    }
-
     @Override
-    public ResponseEntity<de.sheqq.sommerfacade.dto.User> createUser(CreateUserRequest user) {
-        User saved = service.create(user);
+    public ResponseEntity<User> createUser(User user) {
+        // Erwartet: Client liefert id (Spec)
+        if (user.getId() == null || user.getId().isBlank()) {
+            return ResponseEntity.badRequest().build();
+        }
+        UserDO saved = service.create(mapper.toEntity(user));
         return ResponseEntity
                 .created(URI.create("/api/v1/users/" + saved.getId()))
-                .body(saved);
+                .body(mapper.toDto(saved));
     }
 
     @Override
     public ResponseEntity<Void> deleteUser(String userId) {
-        boolean deleted = service.delete(id);
-        return deleted ? ResponseEntity.noContent().build()
+        return service.delete(userId)
+                ? ResponseEntity.noContent().build()
                 : ResponseEntity.notFound().build();
     }
 
     @Override
-    public ResponseEntity<List<de.sheqq.sommerfacade.dto.User>> getAllUsers() {
-        return ResponseEntity.ok(service.findAll());
+    public ResponseEntity<List<User>> getAllUsers() {
+        List<User> list = service.findAll().stream()
+                .map(mapper::toDto)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(list);
     }
 
     @Override
-    public ResponseEntity<de.sheqq.sommerfacade.dto.User> getUserById(String userId) {
-        return service.findById(id)
-                .map(ResponseEntity::ok)
+    public ResponseEntity<User> getUserById(String userId) {
+        return service.findById(userId)
+                .map(u -> ResponseEntity.ok(mapper.toDto(u)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @Override
-    public ResponseEntity<de.sheqq.sommerfacade.dto.User> updateUser(String userId, UpdateUserRequest user) {
-        return service.update(user.getId(), user)
-                .map(ResponseEntity::ok)
+    public ResponseEntity<User> updateUser(String userId, User user) {
+        // Optional: ID-Konsistenz prüfen
+        if (user.getId() == null || user.getId().isBlank()) {
+            // Body ohne id -> aus Pfad setzen
+            user.setId(userId);
+        } else if (!userId.equals(user.getId())) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        UserDO incoming = mapper.toEntity(user);
+        return service.update(userId, incoming)
+                .map(updated -> ResponseEntity.ok(mapper.toDto(updated)))
                 .orElse(ResponseEntity.notFound().build());
     }
 }

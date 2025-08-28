@@ -1,6 +1,6 @@
 package de.sheqq.sommerfacade.domain;
 
-import de.sheqq.sommerfacade.infrastructur.model.User;
+import de.sheqq.sommerfacade.infrastructur.model.UserDO;
 import de.sheqq.sommerfacade.infrastructur.repository.UserRepository;
 import org.springframework.stereotype.Repository;
 
@@ -11,30 +11,30 @@ import java.util.concurrent.atomic.AtomicLong;
 @Repository
 public class Db implements UserRepository {
 
-    private final Map<String, User> store = new ConcurrentHashMap<>();
+    private final Map<String, UserDO> store = new ConcurrentHashMap<>();
     private final AtomicLong seq = new AtomicLong(0);
 
     @Override
-    public User save(User user) {
-        if (user.getId() == null || user.getId().isBlank()) {
+    public UserDO save(UserDO userDO) {
+        if (userDO.getId() == null || userDO.getId().isBlank()) {
             throw new IllegalArgumentException("id darf nicht leer sein");
         }
-        store.put(user.getId(), user);
-        return user;
+        store.put(userDO.getId(), userDO);
+        return userDO;
     }
 
     @Override
-    public Optional<User> findById(String id) {
+    public Optional<UserDO> findById(String id) {
         return Optional.ofNullable(store.get(id));
     }
 
     @Override
-    public List<User> findAll() {
+    public List<UserDO> findAll() {
         return new ArrayList<>(store.values());
     }
 
     @Override
-    public Optional<User> findByUsername(String username) {
+    public Optional<UserDO> findByUsername(String username) {
         return store.values().stream()
                 .filter(u -> Objects.equals(u.getUsername(), username))
                 .findFirst();

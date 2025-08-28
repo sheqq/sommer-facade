@@ -23,13 +23,13 @@ paths:
               $ref: '#/definitions/User'
     post:
       operationId: createUser
-      summary: Neuen Nutzer erstellen (ohne id)
+      summary: Neuen Nutzer erstellen (Client liefert id)
       parameters:
         - in: body
           name: user
           required: true
           schema:
-            $ref: '#/definitions/CreateUserRequest'
+            $ref: '#/definitions/User'
       responses:
         201:
           description: Nutzer erfolgreich erstellt
@@ -54,7 +54,7 @@ paths:
           description: Nutzer nicht gefunden
     put:
       operationId: updateUser
-      summary: Nutzer aktualisieren
+      summary: Nutzer aktualisieren (Body.id soll mit Pfad-ID übereinstimmen)
       parameters:
         - in: path
           name: userId
@@ -64,7 +64,7 @@ paths:
           name: user
           required: true
           schema:
-            $ref: '#/definitions/UpdateUserRequest'
+            $ref: '#/definitions/User'
       responses:
         200:
           description: Nutzer erfolgreich aktualisiert
@@ -89,10 +89,12 @@ paths:
 definitions:
   UserAttributes:
     type: object
+    required:
+      - id
+      - username
     properties:
       id:
         type: string
-        readOnly: true
         example: "2347247625478"
       username:
         type: string
@@ -101,8 +103,8 @@ definitions:
         type: array
         items:
           type: string
-          format: date-time
-        example: ["2025-08-27T12:34:56"]
+          format: date
+        example: ["2025-08-27", "2025-09-01"]
       level:
         type: integer
         example: 5
@@ -111,24 +113,6 @@ definitions:
         example: "#FF5733"
 
   User:
-    allOf:
-      - $ref: '#/definitions/UserAttributes'
-      - type: object
-        required:
-          - id
-          - username
-        properties: {}
-
-  CreateUserRequest:
-    allOf:
-      - $ref: '#/definitions/UserAttributes'
-      - type: object
-        required:
-          - -id
-          - username
-        properties: {}
-
-  UpdateUserRequest:
     allOf:
       - $ref: '#/definitions/UserAttributes'
       - type: object
