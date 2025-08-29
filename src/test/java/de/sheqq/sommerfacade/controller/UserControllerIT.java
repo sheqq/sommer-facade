@@ -29,7 +29,7 @@ class UserControllerIT {
           {
             "id":"u1",
             "username":"Alice",
-            "member":["2025-08-27T12:34:56Z"],
+            "member":["2025-08-27"],
             "level":3,
             "color":"#112233"
           }
@@ -45,7 +45,7 @@ class UserControllerIT {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value("u1"))
                 .andExpect(jsonPath("$.username").value("Alice"))
-                .andExpect(jsonPath("$.member[0]").value("2025-08-27T12:34:56Z"))
+                .andExpect(jsonPath("$.member[0]").value("2025-08-27"))
                 .andExpect(jsonPath("$.level").value(3))
                 .andExpect(jsonPath("$.color").value("#112233"));
     }
@@ -56,18 +56,18 @@ class UserControllerIT {
         mvc.perform(post(base)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                  {"id":"u2","username":"Bob","member":["2025-08-27T10:00:00Z"]}
+                  {"id":"u2","username":"Bob","member":["2025-08-27"]}
                   """))
                 .andExpect(status().isCreated());
 
         mvc.perform(put(base + "/u2")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                  {"id":"u2","username":"Bobby","member":["2025-08-27T11:11:11Z"],"level":9,"color":"#ABCDEF"}
+                  {"id":"u2","username":"Bobby","member":["2025-08-27"],"level":9,"color":"#ABCDEF"}
                   """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.username").value("Bobby"))
-                .andExpect(jsonPath("$.member[0]").value("2025-08-27T11:11:11Z"))
+                .andExpect(jsonPath("$.member[0]").value("2025-08-27"))
                 .andExpect(jsonPath("$.level").value(9))
                 .andExpect(jsonPath("$.color").value("#ABCDEF"));
     }
