@@ -9,9 +9,15 @@ consumes:
 produces:
   - application/json
 
+tags:
+  - name: user
+    description: Operationen rund um Nutzer
+
 paths:
   /users:
     get:
+      tags:
+        - user
       operationId: getAllUsers
       summary: Get all users
       responses:
@@ -22,6 +28,8 @@ paths:
             items:
               $ref: '#/definitions/User'
     post:
+      tags:
+        - user
       operationId: createUser
       summary: Neuen Nutzer erstellen (Client liefert id)
       parameters:
@@ -38,6 +46,8 @@ paths:
 
   /users/{userId}:
     get:
+      tags:
+        - user
       operationId: getUserById
       summary: Nutzer nach ID abrufen
       parameters:
@@ -53,6 +63,8 @@ paths:
         404:
           description: Nutzer nicht gefunden
     put:
+      tags:
+        - user
       operationId: updateUser
       summary: Nutzer aktualisieren (Body.id soll mit Pfad-ID übereinstimmen)
       parameters:
@@ -73,6 +85,8 @@ paths:
         404:
           description: Nutzer nicht gefunden
     delete:
+      tags:
+        - user
       operationId: deleteUser
       summary: Nutzer löschen
       parameters:
