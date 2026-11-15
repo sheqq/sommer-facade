@@ -27,9 +27,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
-@AutoConfigureMockMvc(addFilters = false)
+@AutoConfigureMockMvc
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class UserControllerIT {
+    private static final String API_KEY = "test-api-key";
 
     @Autowired
     MockMvc mvc;
@@ -39,6 +40,21 @@ class UserControllerIT {
 
     private final Map<String, UserEntity> users = new HashMap<>();
     private final String base = "/api/v1/users";
+
+    @Test
+    @DisplayName("Anfrage ohne API-Key wird abgewiesen")
+    void rejectsRequestWithoutApiKey() throws Exception {
+        mvc.perform(get(base))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("Anfrage mit ungültigem API-Key wird abgewiesen")
+    void rejectsRequestWithInvalidApiKey() throws Exception {
+        mvc.perform(get(base)
+                        .header("X-API-Key", "invalid"))
+                .andExpect(status().isUnauthorized());
+    }
 
     @BeforeEach
     void setUpRepository() {
@@ -75,12 +91,14 @@ class UserControllerIT {
           """;
 
         mvc.perform(post(base)
+                        .header("X-API-Key", API_KEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isCreated())
                 .andExpect(header().string("Location", base + "/u1"));
 
-        mvc.perform(get(base + "/u1"))
+        mvc.perform(get(base + "/u1")
+                        .header("X-API-Key", API_KEY))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value("u1"))
                 .andExpect(jsonPath("$.username").value("Alice"));
@@ -90,6 +108,7 @@ class UserControllerIT {
     @DisplayName("Update überschreibt Werte")
     void updateUser() throws Exception {
         mvc.perform(post(base)
+                        .header("X-API-Key", API_KEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                   {"id":"u2","username":"Bob"}
@@ -97,6 +116,7 @@ class UserControllerIT {
                 .andExpect(status().isCreated());
 
         mvc.perform(put(base + "/u2")
+                        .header("X-API-Key", API_KEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                   {"id":"u2","username":"Bobby"}
@@ -109,19 +129,22 @@ class UserControllerIT {
     @DisplayName("Liste enthält angelegte Users")
     void listUsers() throws Exception {
         mvc.perform(post(base)
+                        .header("X-API-Key", API_KEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                   {"id":"a","username":"A"}
                   """))
                 .andExpect(status().isCreated());
         mvc.perform(post(base)
+                        .header("X-API-Key", API_KEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                   {"id":"b","username":"B"}
                   """))
                 .andExpect(status().isCreated());
 
-        mvc.perform(get(base))
+        mvc.perform(get(base)
+                        .header("X-API-Key", API_KEY))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2));
     }
@@ -130,23 +153,27 @@ class UserControllerIT {
     @DisplayName("Delete entfernt User")
     void deleteUser() throws Exception {
         mvc.perform(post(base)
+                        .header("X-API-Key", API_KEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                   {"id":"del","username":"X"}
                   """))
                 .andExpect(status().isCreated());
 
-        mvc.perform(delete(base + "/del"))
+        mvc.perform(delete(base + "/del")
+                        .header("X-API-Key", API_KEY))
                 .andExpect(status().isNoContent());
 
-        mvc.perform(get(base + "/del"))
+        mvc.perform(get(base + "/del")
+                        .header("X-API-Key", API_KEY))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     @DisplayName("Get unbekannt -> 404")
     void getNotFound() throws Exception {
-        mvc.perform(get(base + "/nope"))
+        mvc.perform(get(base + "/nope")
+                        .header("X-API-Key", API_KEY))
                 .andExpect(status().isNotFound());
     }
 
@@ -154,6 +181,7 @@ class UserControllerIT {
     @DisplayName("Update unbekannt -> 404")
     void updateNotFound() throws Exception {
         mvc.perform(put(base + "/ghost")
+                        .header("X-API-Key", API_KEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                   {"id":"ghost","username":"Nobody"}
