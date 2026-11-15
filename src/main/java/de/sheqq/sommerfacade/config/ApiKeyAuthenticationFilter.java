@@ -31,7 +31,7 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
         String providedApiKey = request.getHeader(HEADER_NAME);
         if (providedApiKey == null || !MessageDigest.isEqual(
                 expectedApiKey, providedApiKey.getBytes(StandardCharsets.UTF_8))) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
 

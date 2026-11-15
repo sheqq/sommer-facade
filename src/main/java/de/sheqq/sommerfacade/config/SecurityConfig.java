@@ -1,6 +1,7 @@
 // Datei: src/main/java/de/sheqq/sommerfacade/config/SecurityConfig.java
 package de.sheqq.sommerfacade.config;
 
+import jakarta.servlet.DispatcherType;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,7 +22,9 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
+                .authorizeHttpRequests(auth -> auth
+                        .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
+                        .anyRequest().authenticated())
                 .addFilterBefore(new ApiKeyAuthenticationFilter(apiKey),
                         UsernamePasswordAuthenticationFilter.class)
                 .httpBasic(basic -> basic.disable())
