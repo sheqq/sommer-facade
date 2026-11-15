@@ -1,4 +1,9 @@
 {
+  "scripts": {
+    "api:generate": "mvn generate-sources",
+    "backend:start": "mvn generate-sources spring-boot:run",
+    "backend:test": "mvn test"
+  },
   "dependencies": {
     "mongosh": "^2.5.6"
   }

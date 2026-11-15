@@ -2,13 +2,8 @@ package de.sheqq.sommerfacade.mapper;
 
 import de.sheqq.sommerfacade.dto.User;
 import de.sheqq.sommerfacade.infrastructur.model.UserDO;
+import de.sheqq.sommerfacade.infrastructur.model.UserEntity;
 import org.springframework.stereotype.Component;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 public class UserMapper {
@@ -17,34 +12,35 @@ public class UserMapper {
         UserDO u = new UserDO();
         u.setId(dto.getId());
         u.setUsername(dto.getUsername());
-        u.setMember(listLocalDateToArrayLocalDateTime(dto.getMember()));
-        u.setLevel(dto.getLevel());
-        u.setColor(dto.getColor());
         return u;
     }
 
     public User toDto(UserDO entity) {
+        return entity == null ? null : toDto(entity.getId(), entity.getUsername());
+    }
+
+    public UserDO toDomain(UserEntity entity) {
         if (entity == null) return null;
+        UserDO domain = new UserDO();
+        domain.setId(entity.getId());
+        domain.setUsername(entity.getUsername());
+        return domain;
+    }
+
+    public UserEntity toPersistence(UserDO domain) {
+        if (domain == null) return null;
+        return new UserEntity(domain.getId(), domain.getUsername());
+    }
+
+    public User toDto(UserEntity entity) {
+        if (entity == null) return null;
+        return toDto(entity.getId(), entity.getUsername());
+    }
+
+    private User toDto(String id, String username) {
         User dto = new User();
-        dto.setId(entity.getId());
-        dto.setUsername(entity.getUsername());
-        dto.setMember(arrayLocalDateTimeToListLocalDate(entity.getMember()));
-        dto.setLevel(entity.getLevel());
-        dto.setColor(entity.getColor());
+        dto.setId(id);
+        dto.setUsername(username);
         return dto;
-    }
-
-    private LocalDateTime[] listLocalDateToArrayLocalDateTime(List<LocalDate> dates) {
-        if (dates == null) return null;
-        return dates.stream()
-                .map(d -> d.atStartOfDay())
-                .toArray(LocalDateTime[]::new);
-    }
-
-    private List<LocalDate> arrayLocalDateTimeToListLocalDate(LocalDateTime[] arr) {
-        if (arr == null) return null;
-        return Arrays.stream(arr)
-                .map(LocalDateTime::toLocalDate)
-                .collect(Collectors.toList());
     }
 }

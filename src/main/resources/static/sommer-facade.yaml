@@ -8,13 +8,13 @@ servers:
   - url: /api/v1
 
 tags:
-  - name: user
+  - name: users
     description: Operationen rund um Nutzer
 
 paths:
   /users:
     get:
-      tags: [user]
+      tags: [users]
       operationId: getAllUsers
       summary: Get all users
       responses:
@@ -27,7 +27,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/User'
     post:
-      tags: [user]
+      tags: [users]
       operationId: createUser
       summary: Neuen Nutzer erstellen (Client liefert id)
       requestBody:
@@ -53,7 +53,7 @@ paths:
         schema:
           type: string
     get:
-      tags: [user]
+      tags: [users]
       operationId: getUserById
       summary: Nutzer nach ID abrufen
       responses:
@@ -66,7 +66,7 @@ paths:
         '404':
           description: Nutzer nicht gefunden
     put:
-      tags: [user]
+      tags: [users]
       operationId: updateUser
       summary: Nutzer aktualisieren (Body.id soll mit Pfad-ID übereinstimmen)
       requestBody:
@@ -85,7 +85,7 @@ paths:
         '404':
           description: Nutzer nicht gefunden
     delete:
-      tags: [user]
+      tags: [users]
       operationId: deleteUser
       summary: Nutzer löschen
       responses:
@@ -96,7 +96,7 @@ paths:
 
 components:
   schemas:
-    UserAttributes:
+    User:
       type: object
       required:
         - id
@@ -108,20 +108,3 @@ components:
         username:
           type: string
           example: "Max"
-        member:
-          type: array
-          items:
-            type: string
-            format: date
-          example: ["2025-08-27", "2025-09-01"]
-        level:
-          type: integer
-          example: 5
-        color:
-          type: string
-          example: "#FF5733"
-    User:
-      allOf:
-        - $ref: '#/components/schemas/UserAttributes'
-        - type: object
-          properties: {}

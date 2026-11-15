@@ -1,7 +1,11 @@
 package de.sheqq.sommerfacade.controller;
 
+import de.sheqq.sommerfacade.infrastructur.model.UserEntity;
+import de.sheqq.sommerfacade.infrastructur.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
@@ -9,6 +13,16 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -20,7 +34,35 @@ class UserControllerIT {
     @Autowired
     MockMvc mvc;
 
+    @MockBean
+    UserRepository repository;
+
+    private final Map<String, UserEntity> users = new HashMap<>();
     private final String base = "/api/v1/users";
+
+    @BeforeEach
+    void setUpRepository() {
+        users.clear();
+        reset(repository);
+        when(repository.save(any(UserEntity.class))).thenAnswer(invocation -> {
+            UserEntity user = invocation.getArgument(0);
+            users.put(user.getId(), user);
+            return user;
+        });
+        when(repository.findById(anyString()))
+                .thenAnswer(invocation -> Optional.ofNullable(users.get(invocation.getArgument(0))));
+        when(repository.findAll()).thenAnswer(invocation -> new ArrayList<>(users.values()));
+        when(repository.existsById(anyString()))
+                .thenAnswer(invocation -> users.containsKey(invocation.getArgument(0)));
+        when(repository.findByUsername(anyString())).thenAnswer(invocation -> users.values().stream()
+                .filter(user -> user.getUsername().equals(invocation.getArgument(0)))
+                .findFirst());
+        doAnswer(invocation -> {
+            String id = invocation.getArgument(0);
+            users.remove(id);
+            return null;
+        }).when(repository).deleteById(anyString());
+    }
 
     @Test
     @DisplayName("Create + Get Roundtrip")
@@ -28,10 +70,7 @@ class UserControllerIT {
         String body = """
           {
             "id":"u1",
-            "username":"Alice",
-            "member":["2025-08-27"],
-            "level":3,
-            "color":"#112233"
+            "username":"Alice"
           }
           """;
 
@@ -44,10 +83,7 @@ class UserControllerIT {
         mvc.perform(get(base + "/u1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value("u1"))
-                .andExpect(jsonPath("$.username").value("Alice"))
-                .andExpect(jsonPath("$.member[0]").value("2025-08-27"))
-                .andExpect(jsonPath("$.level").value(3))
-                .andExpect(jsonPath("$.color").value("#112233"));
+                .andExpect(jsonPath("$.username").value("Alice"));
     }
 
     @Test
@@ -56,20 +92,17 @@ class UserControllerIT {
         mvc.perform(post(base)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                  {"id":"u2","username":"Bob","member":["2025-08-27"]}
+                  {"id":"u2","username":"Bob"}
                   """))
                 .andExpect(status().isCreated());
 
         mvc.perform(put(base + "/u2")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                  {"id":"u2","username":"Bobby","member":["2025-08-27"],"level":9,"color":"#ABCDEF"}
+                  {"id":"u2","username":"Bobby"}
                   """))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value("Bobby"))
-                .andExpect(jsonPath("$.member[0]").value("2025-08-27"))
-                .andExpect(jsonPath("$.level").value(9))
-                .andExpect(jsonPath("$.color").value("#ABCDEF"));
+                .andExpect(jsonPath("$.username").value("Bobby"));
     }
 
     @Test
