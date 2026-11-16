@@ -61,14 +61,6 @@ public class UserController implements UsersApi {
 
     @Override
     public ResponseEntity<User> updateUser(String userId, User user) {
-        // Optional: ID-Konsistenz prüfen
-        if (user.getId() == null || user.getId().isBlank()) {
-            // Body ohne id -> aus Pfad setzen
-            user.setId(userId);
-        } else if (!userId.equals(user.getId())) {
-            return ResponseEntity.badRequest().build();
-        }
-
         UserDO incoming = mapper.toEntity(user);
         return service.update(userId, incoming)
                 .map(updated -> ResponseEntity.ok(mapper.toDto(updated)))

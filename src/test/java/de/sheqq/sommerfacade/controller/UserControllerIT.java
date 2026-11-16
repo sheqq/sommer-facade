@@ -105,7 +105,7 @@ class UserControllerIT {
     }
 
     @Test
-    @DisplayName("Update überschreibt Werte")
+    @DisplayName("Update ersetzt den Nutzer anhand der Pfad-ID vollständig durch den Body")
     void updateUser() throws Exception {
         mvc.perform(post(base)
                         .header("X-API-Key", API_KEY)
@@ -119,8 +119,18 @@ class UserControllerIT {
                         .header("X-API-Key", API_KEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                  {"id":"u2","username":"Bobby"}
+                  {"id":"different-id","username":"Bobby"}
                   """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value("different-id"))
+                .andExpect(jsonPath("$.username").value("Bobby"));
+
+        mvc.perform(get(base + "/u2")
+                        .header("X-API-Key", API_KEY))
+                .andExpect(status().isNotFound());
+
+        mvc.perform(get(base + "/different-id")
+                        .header("X-API-Key", API_KEY))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.username").value("Bobby"));
     }

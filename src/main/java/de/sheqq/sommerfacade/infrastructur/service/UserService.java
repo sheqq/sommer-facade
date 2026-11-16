@@ -32,8 +32,11 @@ public class UserService {
 
     public Optional<UserDO> update(String id, UserDO incoming) {
         return repo.findById(id).map(existing -> {
-            UserEntity updated = new UserEntity(existing.getId(), incoming.getUsername());
-            return mapper.toDomain(repo.save(updated));
+            UserEntity replacement = mapper.toPersistence(incoming);
+            if (!id.equals(replacement.getId())) {
+                repo.deleteById(id);
+            }
+            return mapper.toDomain(repo.save(replacement));
         });
     }
 
